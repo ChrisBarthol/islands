@@ -1,7 +1,7 @@
-defmodule IslandsEngine.Coordinate do
+defmodule Islands.Coordinate do
   defstruct in_island: :none, guessed?: false
 
-  alias IslandsEngine.Coordinate
+  alias Islands.Coordinate
 
   def start_link() do
     Agent.start_link(fn -> %Coordinate{} end)
