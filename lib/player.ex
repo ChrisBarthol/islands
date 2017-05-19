@@ -25,6 +25,14 @@ defmodule Islands.Player do
     Agent.get(player, fn state -> state.island_set end)
   end
 
+  def guess_coordinate(opponent_board, coordinate) do
+    Board.guess_coordinate(opponent_board, coordinate)
+    case Board.coordinate_hit?(opponent_board, coordinate) do
+      true -> :hit
+      false -> :miss
+    end
+  end
+
   def set_island_coordinates(player, island, coordinates) do
     board = Player.get_board(player)
     island_set = Player.get_island_set(player)
