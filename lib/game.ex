@@ -23,16 +23,26 @@ defmodule Islands.Game do
   def handle_call({:guess, player, coordinate}, _from, state) do
     opponent = opponent(state, player)
     opponent_board = Player.get_board(opponent)
-    response = Player.guess_coordinate(opponent_board, coordinate)
-    {:reply, response, state}
+    Player.guess_coordinate(opponent_board, coordinate)
+    |> forest_check(opponent, coordinate)
+    |> win_check(opponent, state)
   end
 
   def call_demo(game) do
     GenServer.call(game, :demo)
   end
 
-  def start_link(name) when not is_nil name do
-    GenServer.start_link(__MODULE__, name)
+  #TODO use more uniq value than name
+  def start_link(name) when is_binary(name) and byte_size(name) > 0 do
+    GenServer.start_link(__MODULE__, name, name: {:global, "game:#{name}"})
+  end
+
+  def stop(pid) do
+    GenServer.cast(pid, :stop)
+  end
+
+  def handle_cast(:stop, state) do
+    {:stop, :normal, state}
   end
 
   def init(name) do
@@ -64,6 +74,27 @@ defmodule Islands.Game do
     state.player1
   end
 
+  defp forest_check(:miss, _opponent, _coordinate) do
+    {:miss, :none}
+  end
+
+  defp forest_check(:hit, opponent, coordinate) do
+    island_key = Player.forested_island(opponent, coordinate)
+    {:hit, island_key}
+  end
+
+  defp win_check({hit_or_miss, :none}, _opponent, state) do
+    {:reply, {hit_or_miss, :none, :no_win}, state}
+  end
+
+  defp win_check({:hit, island_key}, opponent, state) do
+    win_status =
+      case Player.win?(opponent) do
+        true -> :win
+        false -> :no_win
+      end
+    {:reply, {:hit, island_key, win_status}, state}
+  end
   #GenServer examples
 
   # def handle_info(:first, state) do
