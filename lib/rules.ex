@@ -82,10 +82,6 @@ defmodule Islands.Rules do
     {:keep_state_and_data, {:reply, from, :player2_turn}}
   end
 
-  def player2_turn({:call, from}, _, _state_data) do
-    {:keep_state_and_data, {:reply, from, :error}}
-  end
-
   def player2_turn(_event, _caller_pid, state) do
     {:reply, {:error, :action_out_of_sequence}, :player2_turn, state}
   end
@@ -104,6 +100,14 @@ defmodule Islands.Rules do
 
   def add_player(fsm) do
     :gen_statem.call(fsm, :add_player)
+  end
+
+  def win(fsm) do
+    :gen_statem.call(fsm, :win)
+  end
+
+  def guess_coordinate(fsm, player) when is_atom player do
+    :gen_statem.call(fsm, {:guess_coordinate, player})
   end
 
   def move_island(fsm, player) when is_atom player do
